@@ -109,9 +109,14 @@ class Quark:
             if json_response.get("data"):
                 return json_response["data"]
             else:
+                error_msg = f"获取成长信息失败: {json_response.get('message', '未知错误')}"
+                print(f'❌ {error_msg}')
+                send_to_wxwork(f"夸克签到异常提醒\n账号: {self.param.get('user')}\n{error_msg}")
                 return False
         except Exception as e:
-            print(f'❌ 获取成长信息失败: {str(e)}')
+            error_msg = f'获取成长信息异常: {str(e)}'
+            print(f'❌ {error_msg}')
+            send_to_wxwork(f"夸克签到异常提醒\n账号: {self.param.get('user')}\n{error_msg}")
             return False
 
     def get_growth_sign(self):
@@ -137,9 +142,14 @@ class Quark:
             if json_response.get("data"):
                 return True, json_response["data"]["sign_daily_reward"]
             else:
-                return False, json_response["message"]
+                error_msg = f"签到失败: {json_response.get('message', '未知错误')}"
+                print(f'❌ {error_msg}')
+                send_to_wxwork(f"夸克签到异常提醒\n账号: {self.param.get('user')}\n{error_msg}")
+                return False, json_response.get('message', '未知错误')
         except Exception as e:
-            print(f'❌ 签到失败: {str(e)}')
+            error_msg = f'签到异常: {str(e)}'
+            print(f'❌ {error_msg}')
+            send_to_wxwork(f"夸克签到异常提醒\n账号: {self.param.get('user')}\n{error_msg}")
             return False, str(e)
 
     def queryBalance(self):
@@ -223,7 +233,6 @@ def main():
         # 登录
         log = Quark(user_data).do_sign()
         msg += log + "\n"
-
 
         i += 1
 
