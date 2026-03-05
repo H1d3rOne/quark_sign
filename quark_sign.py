@@ -107,17 +107,15 @@ class Quark:
             json_response = response.json()
             #print(json_response)
             if json_response.get("data"):
-                return json_response["data"]
+                return json_response["data"], None
             else:
                 error_msg = f"获取成长信息失败: {json_response.get('message', '未知错误')}"
                 print(f'❌ {error_msg}')
-                send_to_wxwork(f"夸克签到异常提醒\n账号: {self.param.get('user')}\n{error_msg}")
-                return False
+                return False, error_msg
         except Exception as e:
             error_msg = f'获取成长信息异常: {str(e)}'
             print(f'❌ {error_msg}')
-            send_to_wxwork(f"夸克签到异常提醒\n账号: {self.param.get('user')}\n{error_msg}")
-            return False
+            return False, error_msg
 
     def get_growth_sign(self):
         '''
@@ -140,17 +138,15 @@ class Quark:
             json_response = response.json()
             #print(json_response)
             if json_response.get("data"):
-                return True, json_response["data"]["sign_daily_reward"]
+                return True, json_response["data"]["sign_daily_reward"], None
             else:
                 error_msg = f"签到失败: {json_response.get('message', '未知错误')}"
                 print(f'❌ {error_msg}')
-                send_to_wxwork(f"夸克签到异常提醒\n账号: {self.param.get('user')}\n{error_msg}")
-                return False, json_response.get('message', '未知错误')
+                return False, 0, error_msg
         except Exception as e:
             error_msg = f'签到异常: {str(e)}'
             print(f'❌ {error_msg}')
-            send_to_wxwork(f"夸克签到异常提醒\n账号: {self.param.get('user')}\n{error_msg}")
-            return False, str(e)
+            return False, 0, error_msg
 
     def queryBalance(self):
         '''
@@ -174,8 +170,12 @@ class Quark:
         :return: 返回一个字符串，包含签到结果
         '''
         log = ""
+        errors = []
         # 每日领空间
-        growth_info = self.get_growth_info()
+        growth_info, error = self.get_growth_info()
+        if error:
+            errors.append(error)
+        
         if growth_info:
             log += (
                 f" {'88VIP' if growth_info['88VIP'] else '普通用户'} {self.param.get('user')}\n"
@@ -192,7 +192,9 @@ class Quark:
                     f"连签进度({growth_info['cap_sign']['sign_progress']}/{growth_info['cap_sign']['sign_target']})\n"
                 )
             else:
-                sign, sign_return = self.get_growth_sign()
+                sign, sign_return, error = self.get_growth_sign()
+                if error:
+                    errors.append(error)
                 if sign:
                     log += (
                         f"✅ 执行签到: 今日签到+{self.convert_bytes(sign_return)}，"
@@ -203,7 +205,7 @@ class Quark:
         else:
             log += f"❌ 签到异常: 获取成长信息失败\n"
 
-        return log
+        return log, errors
 
 
 def main():
@@ -212,6 +214,7 @@ def main():
     :return: 返回一个字符串，包含签到结果
     '''
     msg = ""
+    all_errors = []
     global cookie_quark
     cookie_quark = get_env()
 
@@ -231,17 +234,26 @@ def main():
         log = f"🙍🏻‍♂️ 第{i + 1}个账号"
         msg += log
         # 登录
-        log = Quark(user_data).do_sign()
+        log, errors = Quark(user_data).do_sign()
         msg += log + "\n"
+        if errors:
+            all_errors.extend(errors)
 
         i += 1
 
     # print(msg)
 
     try:
-        message = f'夸克自动签到：\n{msg}({datetime.now().strftime("%Y-%m-%d %H:%M:%S")})'
-        print(message)
-        send_to_wxwork(message)
+        # 构建最终消息
+        final_message = f'夸克自动签到：\n{msg}({datetime.now().strftime("%Y-%m-%d %H:%M:%S")})'
+        
+        # 如果有异常，添加异常信息
+        if all_errors:
+            error_msg = "\n⚠️ 异常提醒：\n" + "\n".join([f"• {err}" for err in all_errors])
+            final_message += error_msg
+        
+        print(final_message)
+        send_to_wxwork(final_message)
     except Exception as err:
         print('%s\n❌ 错误，请查看运行日志！' % err)
 
