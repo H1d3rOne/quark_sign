@@ -31,5 +31,6 @@ jobs:
       - name: Run Quark Sign-in
         env:
           COOKIE_QUARK: ${{ secrets.COOKIE_QUARK }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         run: |
           python quark_sign.py

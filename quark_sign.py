@@ -25,7 +25,10 @@ def get_env():
 
 
 def send_to_wxwork(content):
-    webhook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=92900bbd-24a1-4bd0-aa8b-5630be1e0982"
+    webhook = os.environ.get('WEBHOOK_URL', '')
+    if not webhook:
+        print('❌未添加WEBHOOK_URL变量')
+        return
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
     }
