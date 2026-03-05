@@ -1,0 +1,35 @@
+name: Quark Auto Sign-in
+
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  quark-sign:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install requests
+
+      - name: Run Quark Sign-in
+        env:
+          COOKIE_QUARK: ${{ secrets.COOKIE_QUARK }}
+        run: |
+          python quark_sign.py
