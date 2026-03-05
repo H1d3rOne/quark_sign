@@ -1,5 +1,6 @@
 # GitHub Actions 配置指南
 
+
 ## 概述
 
 本指南将帮助您配置 GitHub Actions 以实现夸克网盘的自动签到功能，并支持企业微信通知。
@@ -46,7 +47,6 @@
   - 说明：用于发送签到结果通知
 
 ### 步骤 4：配置 GitHub Actions 权限
-
 1. 进入仓库的 Settings > Actions > General
 2. 在 "Workflow permissions" 部分
 3. 选择 "Read and write permissions"
@@ -92,16 +92,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
       - name: Install dependencies
         run: |
           python -m pip install requests
-
       - name: Run Quark Sign-in
         env:
           COOKIE_QUARK: ${{ secrets.COOKIE_QUARK }}
@@ -139,13 +136,11 @@ jobs:
 2. **加入企业**
    - 联系企业管理员获取邀请链接或二维码
    - 通过邀请加入企业
-
 3. **关注应用**
    - 进入企业微信应用
    - 找到"应用"或"工作台"
    - 搜索并关注"夸克自动签到"应用
    - 开启消息通知
-
 4. **接收通知**
    - 确保企业微信应用有通知权限
    - 在手机设置中允许企业微信发送通知
