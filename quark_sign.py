@@ -3,10 +3,12 @@
 import os
 import re
 import sys
+import time
 from datetime import datetime
 
 import requests
-
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 # 获取环境变量
@@ -14,17 +16,29 @@ def get_env():
     # 判断 COOKIE_QUARK是否存在于环境变量
     if "COOKIE_QUARK" in os.environ:
         # 读取系统变量以 \n 或 && 分割变量
-        cookie_list = re.split('\n|&&', os.environ.get('COOKIE_QUARK'))
+        cookie_list = re.split('\\n|&&', os.environ.get('COOKIE_QUARK'))
     else:
         # 标准日志输出
         print('❌未添加COOKIE_QUARK变量')
         send_to_wxwork('夸克自动签到,❌未添加COOKIE_QUARK变量')
         # 脚本退出
         sys.exit(0)
-
     return cookie_list
 
-
+# 创建带重试机制的会话
+def create_session():
+    retry_strategy = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["HEAD", "GET", "OPTIONS", "POST"]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session = requests.Session()
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
+  
 def send_to_wxwork(content):
     webhook = os.environ.get('WEBHOOK_URL', '')
     if not webhook:
@@ -40,8 +54,13 @@ def send_to_wxwork(content):
             "content": content
         }
     }
-    response = requests.post(webhook, json=hook_data, headers=headers)
-
+    try:
+        session = create_session()
+        response = session.post(webhook, json=hook_data, headers=headers, timeout=10)
+        response.raise_for_status()
+        print('✅ 企业微信通知发送成功')
+    except Exception as e:
+        print(f'❌ 企业微信通知发送失败: {str(e)}')
 
 class Quark:
     '''
@@ -80,11 +99,17 @@ class Quark:
             "sign": self.param.get('sign'),
             "vcode": self.param.get('vcode')
         }
-        response = requests.get(url=url, params=querystring).json()
-        #print(response)
-        if response.get("data"):
-            return response["data"]
-        else:
+        try:
+            session = create_session()
+            response = session.get(url=url, params=querystring, timeout=10)
+            response.raise_for_status()
+            #print(response)
+            if response.get("data"):
+                return response["data"]
+            else:
+                return False
+        except Exception as e:
+            print(f'❌ 获取成长信息失败: {str(e)}')
             return False
 
     def get_growth_sign(self):
@@ -101,12 +126,18 @@ class Quark:
             "vcode": self.param.get('vcode')
         }
         data = {"sign_cyclic": True}
-        response = requests.post(url=url, json=data, params=querystring).json()
-        #print(response)
-        if response.get("data"):
-            return True, response["data"]["sign_daily_reward"]
-        else:
-            return False, response["message"]
+        try:
+            session = create_session()
+            response = session.post(url=url, json=data, params=querystring, timeout=10)
+            response.raise_for_status()
+            #print(response)
+            if response.get("data"):
+                return True, response["data"]["sign_daily_reward"]
+            else:
+                return False, response["message"]
+        except Exception as e:
+            print(f'❌ 签到失败: {str(e)}')
+            return False, str(e)
 
     def queryBalance(self):
         '''
@@ -136,7 +167,8 @@ class Quark:
             log += (
                 f" {'88VIP' if growth_info['88VIP'] else '普通用户'} {self.param.get('user')}\n"
                 f"💾 网盘总容量：{self.convert_bytes(growth_info['total_capacity'])}，"
-                f"签到累计容量：")
+                f"签到累计容量："
+            )
             if "sign_reward" in growth_info['cap_composition']:
                 log += f"{self.convert_bytes(growth_info['cap_composition']['sign_reward'])}\n"
             else:
@@ -201,7 +233,6 @@ def main():
         print('%s\n❌ 错误，请查看运行日志！' % err)
 
     return msg[:-1]
-
 
 if __name__ == "__main__":
     print("----------夸克网盘开始签到----------")
