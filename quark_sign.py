@@ -104,9 +104,10 @@ class Quark:
             session = create_session()
             response = session.get(url=url, params=querystring, timeout=10)
             response.raise_for_status()
-            #print(response)
-            if response.get("data"):
-                return response["data"]
+            json_response = response.json()
+            #print(json_response)
+            if json_response.get("data"):
+                return json_response["data"]
             else:
                 return False
         except Exception as e:
@@ -131,11 +132,12 @@ class Quark:
             session = create_session()
             response = session.post(url=url, json=data, params=querystring, timeout=10)
             response.raise_for_status()
-            #print(response)
-            if response.get("data"):
-                return True, response["data"]["sign_daily_reward"]
+            json_response = response.json()
+            #print(json_response)
+            if json_response.get("data"):
+                return True, json_response["data"]["sign_daily_reward"]
             else:
-                return False, response["message"]
+                return False, json_response["message"]
         except Exception as e:
             print(f'❌ 签到失败: {str(e)}')
             return False, str(e)
@@ -221,6 +223,7 @@ def main():
         # 登录
         log = Quark(user_data).do_sign()
         msg += log + "\n"
+
 
         i += 1
 
