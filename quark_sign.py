@@ -11,22 +11,16 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
-# 获取环境变量
 def get_env():
-    # 判断 COOKIE_QUARK是否存在于环境变量
     if "COOKIE_QUARK" in os.environ:
-        # 读取系统变量以 \n 或 && 分割变量
         cookie_list = re.split('\n|&&', os.environ.get('COOKIE_QUARK'))
     else:
-        # 标准日志输出
         print('❌未添加COOKIE_QUARK变量')
         send_to_wxwork('夸克自动签到,❌未添加COOKIE_QUARK变量')
-        # 脚本退出
         sys.exit(0)
 
     return cookie_list
 
-# 创建带重试机制的会话
 def create_session():
     retry_strategy = Retry(
         total=3,
@@ -105,7 +99,6 @@ class Quark:
             response = session.get(url=url, params=querystring, timeout=10)
             response.raise_for_status()
             json_response = response.json()
-            #print(json_response)
             if json_response.get("data"):
                 return json_response["data"], None
             else:
@@ -136,7 +129,6 @@ class Quark:
             response = session.post(url=url, json=data, params=querystring, timeout=10)
             response.raise_for_status()
             json_response = response.json()
-            #print(json_response)
             if json_response.get("data"):
                 return True, json_response["data"]["sign_daily_reward"], None
             else:
@@ -158,7 +150,6 @@ class Quark:
             "kps": self.param.get('kps'),
         }
         response = requests.get(url=url, params=querystring).json()
-        # print(response)
         if response.get("data"):
             return response["data"]["balance"]
         else:
@@ -171,7 +162,6 @@ class Quark:
         '''
         log = ""
         errors = []
-        # 每日领空间
         growth_info, error = self.get_growth_info()
         if error:
             errors.append(error)
@@ -200,10 +190,6 @@ class Quark:
                         f"✅ 执行签到: 今日签到+{self.convert_bytes(sign_return)}，"
                         f"连签进度({growth_info['cap_sign']['sign_progress'] + 1}/{growth_info['cap_sign']['sign_target']})\n"
                     )
-                else:
-                    log += f"❌ 签到异常: {sign_return}\n"
-        else:
-            log += f"❌ 签到异常: 获取成长信息失败\n"
 
         return log, errors
 
@@ -222,18 +208,13 @@ def main():
 
     i = 0
     while i < len(cookie_quark):
-        # 获取user_data参数
-        user_data = {}  # 用户信息
+        user_data = {}
         for a in cookie_quark[i].replace(" ", "").split(';'):
             if not a == '':
-                # user_data.update({a[0:a.index('=')]: a[a.index('=') + 1:]})
                 item = a.split('=', 1)
                 user_data[item[0]] = item[1]
-        # print(user_data)
-        # 开始任务
         log = f"🙍🏻‍♂️ 第{i + 1}个账号"
         msg += log
-        # 登录
         log, errors = Quark(user_data).do_sign()
         msg += log + "\n"
         if errors:
@@ -241,13 +222,9 @@ def main():
 
         i += 1
 
-    # print(msg)
-
     try:
-        # 构建最终消息
         final_message = f'夸克自动签到：\n{msg}({datetime.now().strftime("%Y-%m-%d %H:%M:%S")})'
         
-        # 如果有异常，添加异常信息
         if all_errors:
             error_msg = "\n⚠️ 异常提醒：\n" + "\n".join([f"• {err}" for err in all_errors])
             final_message += error_msg
