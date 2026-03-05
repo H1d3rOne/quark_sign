@@ -29,8 +29,12 @@ jobs:
           python -m pip install requests
 
       - name: Run Quark Sign-in
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 60
+          command: python quark_sign.py
         env:
           COOKIE_QUARK: ${{ secrets.COOKIE_QUARK }}
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-        run: |
-          python quark_sign.py
