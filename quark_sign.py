@@ -172,8 +172,7 @@ def main():
     '''
     msg = ""
     global cookie_quark
-    # cookie_quark = get_env()
-    cookie_quark = ["user=张三; kps=AASdZbWHv6fbQV6Yjma+CEStk6InZIa/tChHogXvJ/KLQHzbxd6C2LoqMw2+/1NohJq5a04Dspc+HtjsQnIwFteTTBwKt/Es+rwC4gDI9GgvQQ==; sign=AATxMsG6t8Zn9nfREZkLMwCbf0SVnZUuFc12SyCAm/fxyknUJK3B7RSjP8ByPiUpWb4=; vcode=1772469552149;", "user=李四; kps=AASt+bhZeghE0mFSXRA5ItHdObxbMXtvfzrCN2u/1a4duU1ctN5l5U9pj/JJUOCm1NcZHUutvBjxDiVkCSj+he8jeCIzHxKZziLWjVXx/vJLWQ==; sign=AASJcErco9kmy47nGtTzxYrqLokp6GUdHxhZkM7Jr7HYWkWS3IevwugSxhP4/J0QWKw=; vcode=1772470253918;"]
+    cookie_quark = get_env()
 
     print("✅ 检测到共", len(cookie_quark), "个夸克账号\n")
 
