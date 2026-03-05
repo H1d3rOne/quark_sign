@@ -7,12 +7,13 @@
 ## 配置步骤
 
 ### 1. 添加Repository Secret
-
 1. 进入GitHub仓库页面：https://github.com/H1d3rOne/quark_sign/settings/secrets/actions
 2. 点击 "New repository secret" 按钮
 3. 添加以下Secret：
    - Name: `COOKIE_QUARK`
    - Value: 你的夸克网盘Cookie信息（支持多个账号，用换行符或&&分隔）
+   - Name: `WEBHOOK_URL`
+   - Value: 你的企业微信Webhook地址（在quark_sign.py中的send_to_wxwork函数中配置）
 
 ### 2. Cookie格式
 
