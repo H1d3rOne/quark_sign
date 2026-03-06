@@ -4,12 +4,11 @@ import os
 import re
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
 
 def get_env():
     if "COOKIE_QUARK" in os.environ:
@@ -223,7 +222,8 @@ def main():
         i += 1
 
     try:
-        final_message = f'夸克自动签到：\n{msg}({datetime.now().strftime("%Y-%m-%d %H:%M:%S")})'
+        beijing_time = datetime.now(timezone.utc) + timedelta(hours=8)
+        final_message = f'夸克自动签到：\n{msg}({beijing_time.strftime("%Y-%m-%d %H:%M:%S")})'
         
         if all_errors:
             error_msg = "\n⚠️ 异常提醒：\n" + "\n".join([f"• {err}" for err in all_errors])
