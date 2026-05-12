@@ -12,6 +12,8 @@ permissions:
 jobs:
   quark-sign:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     permissions:
       contents: read
       actions: write
@@ -29,12 +31,20 @@ jobs:
           python -m pip install requests
 
       - name: Run Quark Sign-in
-        uses: nick-invision/retry@v2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 60
-          command: python quark_sign.py
+        run: |
+          for i in 1 2 3; do
+            if python quark_sign.py; then
+              echo "Sign-in succeeded on attempt $i"
+              exit 0
+            fi
+            echo "Sign-in failed on attempt $i"
+            if [ $i -lt 3 ]; then
+              echo "Waiting 60 seconds before retry..."
+              sleep 60
+            fi
+          done
+          echo "All 3 attempts failed"
+          exit 1
         env:
           COOKIE_QUARK: ${{ secrets.COOKIE_QUARK }}
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
