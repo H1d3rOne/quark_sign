@@ -2,7 +2,7 @@ name: Keep Repository Active
 
 on:
   schedule:
-    - cron: '0 0 1 * *'
+    - cron: '0 0 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -15,12 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Keep active
+      - name: Update timestamp in README.md
         run: |
-          echo "Last active: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" > .last_active
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          sed -i "s/<!-- LAST_ACTIVE -->.*<!-- \/LAST_ACTIVE -->/<!-- LAST_ACTIVE -->${TIMESTAMP}<!-- \/LAST_ACTIVE -->/" README.md
 
       - name: Commit and push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: keep repository active [skip ci]"
-          file_pattern: .last_active
+          file_pattern: README.md

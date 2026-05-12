@@ -4,6 +4,8 @@
 
 本项目已配置GitHub Actions自动执行夸克网盘签到及企业微信通知。
 
+> 🕐 仓库最后活跃时间：<!-- LAST_ACTIVE -->2026-05-13 04:35:00 UTC<!-- /LAST_ACTIVE -->
+
 ## 配置步骤
 
 ### 1. 添加Repository Secret
